@@ -37,10 +37,9 @@ namespace Consumer
                                      exclusive: false,
                                      autoDelete: false,
                                      arguments: null);
-                List<FileChunk> chunks = new List<FileChunk>();
                 var consumer = new EventingBasicConsumer(channel);
 
-                string path = @"C:\Users\Zhanibek\Desktop\data34.bin";
+                string path = @"C:\Users\Zhanibek\Desktop\rise2.mp4";
 
                 using (var fs = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write))
                 {
@@ -49,19 +48,14 @@ namespace Consumer
                         var body = ea.Body;
 
                         var message = Encoding.UTF8.GetString(body);
-                        Type type = typeof(FileChunk);
-                        FileChunk fileChunk = JsonConvert.DeserializeObject(message, type) as FileChunk;
-                        chunks.Add(fileChunk);
+
+                        FileChunk fileChunk = JsonConvert.DeserializeObject<FileChunk>(message);
                         //Console.WriteLine(" [x] Received {0} {1} {2} \n",fileChunk.FileId, fileChunk.Content, fileChunk.ChunkNo);
 
                         Console.WriteLine(fs.Length);
-                        fs.Write(fileChunk.Content, 0 + (fileChunk.ChunkNo - 1) * (fileChunk.Content.Length / 1024 / 1024), fileChunk.Content.Length);
+                        fs.Write(fileChunk.Content, 0, fileChunk.Content.Length);
                         Console.WriteLine("________\n" + fs.Length);
-
-
-
-
-                    }; chunks.OrderBy(o => o.ChunkNo);
+                    }; 
                     channel.BasicConsume(queue: "files_to_process_queue",
                                              autoAck: true,
                                              consumer: consumer);

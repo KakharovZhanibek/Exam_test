@@ -20,7 +20,7 @@ namespace Producer
     {
         static void Main(string[] args)
         {
-            string path = @"C:\Users\Zhanibek\Desktop\data.bin";
+            string path = @"C:\Users\Zhanibek\Desktop\rise.mp4";
 
             string id = Guid.NewGuid().ToString();
             int partitionsCount = 0;
@@ -48,11 +48,10 @@ namespace Producer
                     int readCount = fs.Read(bytes, 0, bytes.Length); ;
                     partitionsCount++;
 
+
                     Console.WriteLine(fs.Position.ToString());
-                    while (readCount == bytes.Length)
+                    while ((readCount == bytes.Length||readCount<bytes.Length)&&readCount!=0)
                     {
-                        readCount = fs.Read(bytes, 0, bytes.Length);
-                        Console.WriteLine(fs.Position.ToString());
                         FileChunk filechunk = new FileChunk()
                         {
                             FileId = id,
@@ -60,17 +59,20 @@ namespace Producer
                             ChunkNo = partitionsCount,
                             Position = fs.Position
                         };
-                        partitionsCount++;
-
-
                         var containerAsJson = JsonConvert.SerializeObject(filechunk);
                         var body = Encoding.UTF8.GetBytes(containerAsJson);
                         channel.BasicPublish(exchange: "",
                                              routingKey: "files_to_process_queue",
                                              basicProperties: null,
                                              body: body);
+
+                        readCount = fs.Read(bytes, 0, bytes.Length);
+                        Console.WriteLine(fs.Position.ToString());
+
+                        partitionsCount++;
                     }
                 }
+                Console.ReadLine();
             }
         }
     }
