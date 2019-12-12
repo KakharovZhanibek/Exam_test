@@ -44,14 +44,22 @@ namespace Producer
                                      arguments: null);
                 using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read))
                 {
-
-                    int readCount = fs.Read(bytes, 0, bytes.Length); ;
-                    partitionsCount++;
-
-
-                    Console.WriteLine(fs.Position.ToString());
-                    while ((readCount == bytes.Length||readCount<bytes.Length)&&readCount!=0)
+                    Console.WriteLine(fs.Length);
+                    while (fs.Position != fs.Length)
                     {
+                        if (fs.Length - fs.Position < bytes.Length)
+                        {
+                            fs.Read(bytes, 0, Convert.ToInt32(fs.Length - fs.Position));
+                            partitionsCount++;
+                        }
+                        else
+                        {
+                            fs.Read(bytes, 0, bytes.Length);
+                            partitionsCount++;
+                        }
+
+
+                        Console.WriteLine(fs.Position.ToString());
                         FileChunk filechunk = new FileChunk()
                         {
                             FileId = id,
@@ -66,11 +74,41 @@ namespace Producer
                                              basicProperties: null,
                                              body: body);
 
-                        readCount = fs.Read(bytes, 0, bytes.Length);
-                        Console.WriteLine(fs.Position.ToString());
-
-                        partitionsCount++;
                     }
+
+                    //                    int readCount = fs.Read(bytes, 0, bytes.Length); ;
+                    //                    partitionsCount++;
+
+                    //                    Console.WriteLine(fs.Position.ToString());
+
+                    //                    while ((readCount == bytes.Length || readCount < bytes.Length) && readCount != 0)
+                    //                    {
+                    //                        FileChunk filechunk = new FileChunk()
+                    //                        {
+                    //                            FileId = id,
+                    //                            Content = bytes,
+                    //                            ChunkNo = partitionsCount,
+                    //                            Position = fs.Position
+                    //                        };
+                    //                        var containerAsJson = JsonConvert.SerializeObject(filechunk);
+                    //                        var body = Encoding.UTF8.GetBytes(containerAsJson);
+                    //                        channel.BasicPublish(exchange: "",
+                    //                                             routingKey: "files_to_process_queue",
+                    //                                             basicProperties: null,
+                    //                                             body: body);
+
+                    //                        if (readCount < bytes.Length)
+                    //                        {
+                    //readCount = fs.Read(bytes, 0, readCount);
+                    //                            partitionsCount++;
+                    //                        }
+                    //                        else
+                    //                        {
+                    //                            readCount = fs.Read(bytes, 0, bytes.Length);
+                    //                            partitionsCount++;
+                    //                        }
+                    //                        Console.WriteLine(fs.Position.ToString());
+                    //                    }
                 }
                 Console.ReadLine();
             }

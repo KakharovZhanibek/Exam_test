@@ -51,10 +51,11 @@ namespace Consumer
 
                         FileChunk fileChunk = JsonConvert.DeserializeObject<FileChunk>(message);
                         //Console.WriteLine(" [x] Received {0} {1} {2} \n",fileChunk.FileId, fileChunk.Content, fileChunk.ChunkNo);
-
+                        Console.WriteLine("____________________");
                         Console.WriteLine(fs.Length);
                         fs.Write(fileChunk.Content, 0, fileChunk.Content.Length);
                         Console.WriteLine("________\n" + fs.Length);
+                        Console.WriteLine("____________________");
                     }; 
                     channel.BasicConsume(queue: "files_to_process_queue",
                                              autoAck: true,
