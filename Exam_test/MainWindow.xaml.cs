@@ -23,6 +23,7 @@ namespace Exam_test
         public MainWindow()
         {
             InitializeComponent();
+
         }
     }
 }

@@ -5,8 +5,17 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Exam_test"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        
-    </Grid>
+        Title="MainWindow" Height="550" Width="800">
+    <StackPanel>
+        <ListView x:Name="lvFiles">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Имя"></GridViewColumn>
+                    <GridViewColumn Header="Дата изменения"></GridViewColumn>
+                    <GridViewColumn Header="Тип"></GridViewColumn>
+                    <GridViewColumn Header="Размер"></GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </StackPanel>
 </Window>

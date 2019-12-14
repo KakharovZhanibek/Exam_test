@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace Producer
 {
     class FileChunk
@@ -18,13 +19,15 @@ namespace Producer
     }
     class Program
     {
+ 
         static void Main(string[] args)
         {
-            string path = @"C:\Users\Zhanibek\Desktop\rise.mp4";
 
+            string path = @"C:\Users\Zhanibek\Desktop\rise.mp4";
             string id = Guid.NewGuid().ToString();
             int partitionsCount = 0;
             var bytes = new byte[(1024 * 1024) * 4];
+
 
 
             var factory = new ConnectionFactory()
@@ -47,26 +50,35 @@ namespace Producer
                     Console.WriteLine(fs.Length);
                     while (fs.Position != fs.Length)
                     {
+                        FileChunk filechunk = new FileChunk();
                         if (fs.Length - fs.Position < bytes.Length)
                         {
-                            fs.Read(bytes, 0, Convert.ToInt32(fs.Length - fs.Position));
+
+                            Console.WriteLine("End: " + (fs.Length - fs.Position).ToString());
+                            byte[] temp = new byte[fs.Length - fs.Position];
+                            fs.Read(temp, 0, Convert.ToInt32(fs.Length - fs.Position));
                             partitionsCount++;
+
+                            filechunk.FileId = id;
+                            filechunk.Content = temp;
+                            filechunk.ChunkNo = partitionsCount;
+                            filechunk.Position = fs.Position;
+
                         }
                         else
                         {
                             fs.Read(bytes, 0, bytes.Length);
                             partitionsCount++;
+
+                            filechunk.FileId = id;
+                            filechunk.Content = bytes;
+                            filechunk.ChunkNo = partitionsCount;
+                            filechunk.Position = fs.Position;
                         }
 
 
                         Console.WriteLine(fs.Position.ToString());
-                        FileChunk filechunk = new FileChunk()
-                        {
-                            FileId = id,
-                            Content = bytes,
-                            ChunkNo = partitionsCount,
-                            Position = fs.Position
-                        };
+
                         var containerAsJson = JsonConvert.SerializeObject(filechunk);
                         var body = Encoding.UTF8.GetBytes(containerAsJson);
                         channel.BasicPublish(exchange: "",
@@ -75,42 +87,51 @@ namespace Producer
                                              body: body);
 
                     }
-
-                    //                    int readCount = fs.Read(bytes, 0, bytes.Length); ;
-                    //                    partitionsCount++;
-
-                    //                    Console.WriteLine(fs.Position.ToString());
-
-                    //                    while ((readCount == bytes.Length || readCount < bytes.Length) && readCount != 0)
-                    //                    {
-                    //                        FileChunk filechunk = new FileChunk()
-                    //                        {
-                    //                            FileId = id,
-                    //                            Content = bytes,
-                    //                            ChunkNo = partitionsCount,
-                    //                            Position = fs.Position
-                    //                        };
-                    //                        var containerAsJson = JsonConvert.SerializeObject(filechunk);
-                    //                        var body = Encoding.UTF8.GetBytes(containerAsJson);
-                    //                        channel.BasicPublish(exchange: "",
-                    //                                             routingKey: "files_to_process_queue",
-                    //                                             basicProperties: null,
-                    //                                             body: body);
-
-                    //                        if (readCount < bytes.Length)
-                    //                        {
-                    //readCount = fs.Read(bytes, 0, readCount);
-                    //                            partitionsCount++;
-                    //                        }
-                    //                        else
-                    //                        {
-                    //                            readCount = fs.Read(bytes, 0, bytes.Length);
-                    //                            partitionsCount++;
-                    //                        }
-                    //                        Console.WriteLine(fs.Position.ToString());
-                    //                    }
+                    Console.ReadLine();
                 }
-                Console.ReadLine();
+            }
+        }
+        static void func(FileStream fs,byte[]bytes,int partitionCount,string id)
+        {
+            Console.WriteLine(fs.Length);
+            while (fs.Position != fs.Length)
+            {
+                FileChunk filechunk = new FileChunk();
+                if (fs.Length - fs.Position < bytes.Length)
+                {
+
+                    Console.WriteLine("End: " + (fs.Length - fs.Position).ToString());
+                    byte[] temp = new byte[fs.Length - fs.Position];
+                    fs.Read(temp, 0, Convert.ToInt32(fs.Length - fs.Position));
+                    partitionsCount++;
+
+                    filechunk.FileId = id;
+                    filechunk.Content = temp;
+                    filechunk.ChunkNo = partitionsCount;
+                    filechunk.Position = fs.Position;
+
+                }
+                else
+                {
+                    fs.Read(bytes, 0, bytes.Length);
+                    partitionsCount++;
+
+                    filechunk.FileId = id;
+                    filechunk.Content = bytes;
+                    filechunk.ChunkNo = partitionsCount;
+                    filechunk.Position = fs.Position;
+                }
+
+
+                Console.WriteLine(fs.Position.ToString());
+
+                var containerAsJson = JsonConvert.SerializeObject(filechunk);
+                var body = Encoding.UTF8.GetBytes(containerAsJson);
+                channel.BasicPublish(exchange: "",
+                                     routingKey: "files_to_process_queue",
+                                     basicProperties: null,
+                                     body: body);
+
             }
         }
     }
